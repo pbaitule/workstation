@@ -1,2 +1,145 @@
 ---
-# tasks file for workstation
+
+- name: install bleachbit
+  dnf:
+    name: bleachbit
+    state: present
+  
+- name: install fedora media writer
+  dnf:
+    name: mediawriter
+    state: present
+
+- name: install google chrome
+  dnf:
+    name: google-chrome
+    state: present
+
+- name: add flathub flatpak repository remote
+  flatpak_remote:
+    name: flathub
+    state: present
+    flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
+    method: system
+
+- name: install slack
+  flatpak:
+    name: slack
+    state: present
+    remote: flathub
+    method: system
+
+- name: install spotify
+  flatpak:
+    name: spotify
+    state: present
+    remote: flathub
+    method: system
+
+- name: install gnome-tweaks
+  dnf:
+    name: gnome-tweaks
+    state: present
+
+- name: install zoom
+  dnf:
+    name: zoom
+    state: present
+
+- name: install tmux
+  dnf:
+    name: tmux
+    state: present
+ 
+- name: install virtualenvwrapper
+  pip:
+    name: virtualenvwrapper
+
+- name: install vim-enhanced
+  dnf:
+    name: vim-enhanced
+    state: present
+
+- name: create directories
+  file:
+    path: "/home/{{ workstation_user | mandatory }}/.vim/{{ item }}"
+    owner: "{{ workstation_user | mandatory }}"
+    group: "{{ workstation_user | mandatory }}"
+    mode: 0775
+    state: directory
+  loop:
+    - autoload
+    - bundle
+
+- name: install pathogen
+  shell: curl -LSso ~/.vim/autoload/pathogen.vim https://tpo.pe/pathogen.vim
+
+- name: install vim-colors-solarized
+  git:
+    repo: https://github.com/altercation/vim-colors-solarized
+    dest: "/home/{{ workstation_user | mandatory }}/.vim/bundle/"
+    clone: true
+
+- name: install powerline for shell
+  dnf:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - powerline
+    - powerline-fonts
+
+- name: install powerline for tmux
+  dnf:
+    name: tmux-powerline
+    state: present
+
+- name: install powerline for vim
+  dnf:
+    name: vim-powerline
+    state: present
+
+- name: copy .bashrc file
+  copy:
+    src: .bashrc
+    dest: "/home/{{ workstation_user | mandatory }}/.bashrc"
+    owner: "{{ workstation_user | mandatory }}"
+    group: "{{ workstation_user | mandatory }}"
+    mode: 0664
+
+- name: copy .vimrc file
+  copy:
+    src: .vimrc
+    dest: "/home/{{ workstation _user | mandatory }}/.vimrc"
+    owner: "{{ workstation _user | mandatory }}"
+    group: "{{ workstation _user | mandatory }}"
+    mode: 0664
+
+- name: copy  .tmux.conf file
+  copy :
+    src: .tmux.conf
+    dest: "/home/{{ workstation _user | mandatory }}/.tmux.conf"
+    owner: "{{ workstation _user | mandatory }}"
+    group: "{{ workstation _user | mandatory }}"
+    mode: 0664
+
+- name: install pycharm
+  block:
+    - name: download pycharm and verify checksum
+      get_url:
+        url: https://download.jetbrains.com/python/pycharm-community-2018.3.4.tar.gz
+        dest: /tmp/
+        checksum: sha256:789bffb179f569cea9e867c04d52d1a05f587134759b188d21d4007127ff7f86
+
+    - name: unarchive pycharm tarball
+      unarchive:
+        src: /tmp/pycharm-community-2018.3.4.tar.gz
+        dest: /opt/
+
+    - name: create symlink for pycharm
+      file:
+        path: /opt/pycharm-community-2018.3.4/bin/pycharm.sh
+        dest: /usr/bin/pycharm
+        owner: root
+        group: root
+        state: link
+...
